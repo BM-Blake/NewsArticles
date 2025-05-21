@@ -1,7 +1,7 @@
-import { View,Text,TextInput,TouchableOpacity,Image,StyleSheet,} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, } from "react-native";
 import React, { useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {widthPercentageToDP as wp,heightPercentageToDP as hp,} from "react-native-responsive-screen";
+import { widthPercentageToDP as wp, heightPercentageToDP as hp, } from "react-native-responsive-screen";
 
 export default function NewsFormScreen({ route, navigation }) {
   const { articleToEdit, articleIndex, onArticleEdited } = route.params || {};
@@ -12,7 +12,25 @@ export default function NewsFormScreen({ route, navigation }) {
   );
 
   const saveArticle = async () => {
-    
+    const newArticle = { title, image, description };
+    try {
+      const existingArticles = await AsyncStorage.getItem("customArticles");
+      const articles = existingArticles ? JSON.parse(existingArticles) : [];
+
+      // If editing an article, update it; otherwise, add a new one
+      if (articleToEdit !== undefined) {
+        articles[articleIndex] = newArticle;
+        await AsyncStorage.setItem("customArticles", JSON.stringify(articles));
+        if (onArticleEdited) onArticleEdited(); // Notify the edit
+      } else {
+        articles.push(newArticle); // Add new article
+        await AsyncStorage.setItem("customArticles", JSON.stringify(articles));
+      }
+
+      navigation.goBack(); // Return to the previous screen
+    } catch (error) {
+      console.error("Error saving the article:", error);
+    }
   };
 
   return (
@@ -63,7 +81,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: 200,
-    height:150,
+    height: 150,
     margin: wp(2),
   },
   imagePlaceholder: {
